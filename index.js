@@ -12,18 +12,23 @@ const patterns = {
   svg: /svg$/i
 }
 
-module.exports = function colorPalette (filename, callback) {
+module.exports = function colorPalette (file, filetype, callback) {
+  if (!callback) {
+    callback = filetype;
+    filetype = '';
+  }
+
   // SVG
-  if (filename.match(patterns.svg)) {
-    return callback(null, getSvgColors(filename, {flat: true}))
+  if (!Buffer.isBuffer(file) && file.match(patterns.svg)) {
+    return callback(null, getSvgColors(file, {flat: true}))
   }
 
   // PNG, GIF, JPG
-  return paletteFromBitmap(filename, callback)
+  return paletteFromBitmap(file, filetype, callback)
 }
 
-function paletteFromBitmap (filename, callback) {
-  getPixels(filename, function (err, pixels) {
+function paletteFromBitmap (file, filetype, callback) {
+  getPixels(file, filetype, function (err, pixels) {
     if (err) return callback(err)
     const palette = getRgbaPalette(pixels.data, 5).map(function (rgba) {
       return chroma(rgba)
